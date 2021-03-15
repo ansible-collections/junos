@@ -153,6 +153,18 @@ options:
           in the current working directory and backup configuration will be copied
           in C(filename) within I(backup) directory.
         type: path
+      backup_format:
+        description:
+        - This argument specifies the format of the configuration the backup file will
+          be stored as.  If the argument is not specified, the module will use the 'set'
+          format.
+        type: str
+        default: set
+        choices:
+        - xml
+        - set
+        - text
+        - json
     type: dict
 requirements:
 - ncclient (>=v0.5.2)
@@ -387,7 +399,13 @@ def configure_device(module, warnings, candidate):
 def main():
     """ main entry point for module execution
     """
-    backup_spec = dict(filename=dict(), dir_path=dict(type="path"))
+    backup_spec = dict(
+        filename=dict(),
+        dir_path=dict(type="path"),
+        backup_format=dict(
+            default="set", choices=["xml", "text", "set", "json"]
+        ),
+    )
     argument_spec = dict(
         lines=dict(aliases=["commands"], type="list", elements="str"),
         src=dict(type="path"),
@@ -428,15 +446,29 @@ def main():
     result = {"changed": False, "warnings": warnings}
 
     if module.params["backup"]:
-        for conf_format in ["set", "text"]:
-            reply = get_configuration(module, format=conf_format)
-            match = reply.find(".//configuration-%s" % conf_format)
-            if match is not None:
-                break
+        if module.params["backup_options"] is not None:
+            conf_format = module.params["backup_options"]["backup_format"]
         else:
+            conf_format = "set"
+        reply = get_configuration(module, format=conf_format)
+        if reply is None:
             module.fail_json(msg="unable to retrieve device configuration")
-
-        result["__backup__"] = match.text.strip()
+        else:
+            if conf_format in ["set", "text"]:
+                reply = reply.find(
+                    ".//configuration-%s" % conf_format
+                ).text.strip()
+            elif conf_format in "xml":
+                reply = str(
+                    tostring(reply.find(".//configuration"), pretty_print=True)
+                ).strip()
+            elif conf_format in "json":
+                reply = str(reply.xpath("//rpc-reply/text()")[0]).strip()
+            if not isinstance(reply, str):
+                module.fail_json(
+                    msg="unable to format retrieved device configuration"
+                )
+            result["__backup__"] = reply
 
     rollback_id = module.params["rollback"]
     if rollback_id:
