@@ -82,6 +82,10 @@ plugin_routing:
       redirect: junipernetworks.junos.junos
     bgp_address_family:
       redirect: junipernetworks.junos.junos
+    junos_prefix_lists:
+      redirect: junipernetworks.junos.junos
+    prefix_lists:
+      redirect: junipernetworks.junos.junos
     junos_lldp_interface:
       redirect: junipernetworks.junos.junos
     lldp_interface:
@@ -230,6 +234,8 @@ plugin_routing:
       redirect: junipernetworks.junos.junos_bgp_global
     bgp_address_family:
       redirect: junipernetworks.junos.junos_bgp_address_family
+    prefix_lists:
+      redirect: junipernetworks.junos.junos_prefix_lists
     lldp_interface:
       redirect: junipernetworks.junos.junos_lldp_interface
       deprecation:
