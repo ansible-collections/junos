@@ -39,7 +39,7 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = """
 ---
 module: junos_bgp_address_family
-version_added: 1.3.0
+version_added: 2.0.1
 short_description: Manage BGP Address Family attributes of interfaces on Junos devices.
 description: Manage BGP Address Family attributes of interfaces on Junos network devices.
 author: Rohit Thakur (@rohitthakur2590)
@@ -117,7 +117,7 @@ options:
                     description: Clear peer connection on reaching limit.
                     type: bool
                   limit_threshold:
-                    description: Percentage of prefix-limit to start warnings.
+                    description: Specify teardown percentage of prefix-limit to start warnings.
                     type: int
                   idle_timeout:
                     description: Set idle timeout node.
@@ -327,14 +327,16 @@ options:
                 type: bool
               topology:
                 description: Multi topology routing tables.
-                type: dict
+                type: list
+                elements: dict
                 suboptions:
                   name:
                     description: Specify topology name.
                     type: str
                   community:
                     description: Community to identify multi topology routes.
-                    type: bool
+                    type: list
+                    elements: str
               withdraw_priority_expedited:
                 description: Expedited queue; highest priority.
                 type: bool

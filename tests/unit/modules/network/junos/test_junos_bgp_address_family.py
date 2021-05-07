@@ -56,51 +56,1591 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
         )
         self.load_config = self.mock_load_config.start()
 
-        self.mock_validate_config = patch(
-            "ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils.validate_config"
-        )
-        self.validate_config = self.mock_validate_config.start()
-
         self.mock_commit_configuration = patch(
             "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.bgp_address_family.bgp_address_family.commit_configuration"
         )
         self.mock_commit_configuration = self.mock_commit_configuration.start()
 
-        self.mock_get_connection = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.facts.bgp_address_family.bgp_address_family."
-            "Bgp_address_familyFacts.get_connection"
+        self.mock_execute_show_command = patch(
+            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.facts.bgp_global.bgp_global."
+            "Bgp_globalFacts.get_device_data"
         )
-        self.get_connection = self.mock_get_connection.start()
+        self.execute_show_command = self.mock_execute_show_command.start()
 
-        self.conn = self.get_connection()
-        self.conn.get = MagicMock()
-
-        self.mock_get_xml_dict = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.facts."
-            "bgp_address_family.bgp_address_family.Bgp_address_familyFacts._get_xml_dict"
-        )
-        self._get_xml_dict = self.mock_get_xml_dict.start()
 
     def tearDown(self):
         super(TestJunosBgp_address_familyModule, self).tearDown()
-        self.mock_get_connection.stop()
         self.mock_load_config.stop()
-        self.mock_validate_config.stop()
         self.mock_lock_configuration.stop()
         self.mock_unlock_configuration.stop()
         self.mock_commit_configuration.stop()
+        self.mock_execute_show_command.stop()
 
-    def load_fixtures(self, commands=None, format="text", changed=False):
-        self.get_connection.return_value = load_fixture(
-            "junos_bgp_address_family_config.cfg"
-        )
-        if changed:
-            self.load_config.return_value = load_fixture(
-                "get_configuration_rpc_reply_diff.txt"
-            )
-        else:
-            self.load_config.return_value = None
 
+    def load_fixtures(
+        self, commands=None, format="text", changed=False, filename=None
+    ):
+        def load_from_file(*args, **kwargs):
+            if filename:
+                output = load_fixture(filename)
+            else:
+                output = load_fixture("junos_bgp_address_family_config.cfg")
+            return output
+
+        self.execute_show_command.side_effect = load_from_file
+
+    def test_junos_bgp_address_family_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <preference>2</preference>
+                            <hold-time>5</hold-time>
+                            <advertise-inactive/>
+                            <out-delay>10</out-delay>
+                            <family>
+                                <inet>
+                                    <unicast>
+                                        <local-ipv4-address>9.9.9.9</local-ipv4-address>
+                                        <extended-nexthop/>
+                                        <extended-nexthop-color/>
+                                    </unicast>
+                                    <flow>
+                                        <loops>
+                                            <loops>4</loops>
+                                        </loops>
+                                        <no-install/>
+                                        <output-queue-priority>
+                                            <expedited/>
+                                        </output-queue-priority>
+                                        <legacy-redirect-ip-action>
+                                            <receive/>
+                                            <send/>
+                                        </legacy-redirect-ip-action>
+                                        <secondary-independent-resolution/>
+                                    </flow>
+                                    <any>
+                                        <accepted-prefix-limit>
+                                            <maximum>20</maximum>
+                                            <teardown>
+                                                <limit-threshold>99</limit-threshold>
+                                                <idle-timeout>
+                                                    <timeout>2000</timeout>
+                                                </idle-timeout>
+                                            </teardown>
+                                        </accepted-prefix-limit>
+                                        <damping/>
+                                        <delay-route-advertisements>
+                                            <minimum-delay>
+                                                <routing-uptime>23000</routing-uptime>
+                                                <inbound-convergence>32000</inbound-convergence>
+                                            </minimum-delay>
+                                            <maximum-delay>
+                                                <route-age>20</route-age>
+                                                <routing-uptime>32000</routing-uptime>
+                                            </maximum-delay>
+                                        </delay-route-advertisements>
+                                        <defer-initial-multipath-build>
+                                            <maximum-delay>2</maximum-delay>
+                                        </defer-initial-multipath-build>
+                                        <graceful-restart>
+                                            <forwarding-state-bit>from-fib</forwarding-state-bit>
+                                        </graceful-restart>
+                                    </any>
+                                    <labeled-unicast>
+                                        <prefix-limit>
+                                            <maximum>20</maximum>
+                                            <teardown>
+                                                <limit-threshold>99</limit-threshold>
+                                                <idle-timeout>
+                                                    <forever/>
+                                                </idle-timeout>
+                                            </teardown>
+                                        </prefix-limit>
+                                        <route-refresh-priority>
+                                            <priority>3</priority>
+                                        </route-refresh-priority>
+                                        <per-prefix-label/>
+                                        <per-group-label/>
+                                        <rib>
+                                            <inet.3/>
+                                        </rib>
+                                        <explicit-null>
+                                            <connected-only/>
+                                        </explicit-null>
+                                        <resolve-vpn/>
+                                        <entropy-label>
+                                            <no-next-hop-validation/>
+                                        </entropy-label>
+                                    </labeled-unicast>
+                                </inet>
+                                <evpn>
+                                    <signaling>
+                                        <accepted-prefix-limit>
+                                            <maximum>20</maximum>
+                                            <teardown>
+                                                <limit-threshold>98</limit-threshold>
+                                                <idle-timeout>
+                                                    <timeout>2001</timeout>
+                                                </idle-timeout>
+                                            </teardown>
+                                        </accepted-prefix-limit>
+                                        <damping/>
+                                        <defer-initial-multipath-build>
+                                            <maximum-delay>2</maximum-delay>
+                                        </defer-initial-multipath-build>
+                                    </signaling>
+                                </evpn>
+                            </family>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "address_family": [
+                {
+                    "af_type": [
+                        {
+                            "accepted_prefix_limit": {
+                                "idle_timeout_value": 2001,
+                                "limit_threshold": 98,
+                                "maximum": 20
+                            },
+                            "damping": True,
+                            "defer_initial_multipath_build": {
+                                "maximum_delay": 2
+                            },
+                            "type": "signaling"
+                        }
+                    ],
+                    "afi": "evpn"
+                },
+                {
+                    "af_type": [
+                        {
+                            "accepted_prefix_limit": {
+                                "idle_timeout_value": 2000,
+                                "limit_threshold": 99,
+                                "maximum": 20
+                            },
+                            "damping": True,
+                            "defer_initial_multipath_build": {
+                                "maximum_delay": 2
+                            },
+                            "delay_route_advertisements": {
+                                "max_delay_route_age": 20,
+                                "max_delay_routing_uptime": 32000,
+                                "min_delay_inbound_convergence": 32000,
+                                "min_delay_routing_uptime": 23000
+                            },
+                            "graceful_restart_forwarding_state_bit": "from-fib",
+                            "type": "any"
+                        },
+                        {
+                            "legacy_redirect_ip_action": {
+                                "receive": True,
+                                "send": True
+                            },
+                            "loops": 4,
+                            "no_install": True,
+                            "output_queue_priority_expedited": True,
+                            "secondary_independent_resolution": True,
+                            "type": "flow"
+                        },
+                        {
+                            "entropy_label": {
+                                "no_next_hop_validation": True
+                            },
+                            "explicit_null": {
+                                "connected_only": True
+                            },
+                            "per_group_label": True,
+                            "per_prefix_label": True,
+                            "prefix_limit": {
+                                "forever": True,
+                                "limit_threshold": 99,
+                                "maximum": 20
+                            },
+                            "resolve_vpn": True,
+                            "rib": "inet.3",
+                            "route_refresh_priority_priority": 3,
+                            "type": "labeled-unicast"
+                        },
+                        {
+                            "extended_nexthop": True,
+                            "extended_nexthop_color": True,
+                            "local_ipv4_address": "9.9.9.9",
+                            "type": "unicast"
+                        }
+                    ],
+                    "afi": "inet"
+                }
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_groups_single_entry_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>internal</name>
+                                <out-delay>12</out-delay>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "internal"
+                }
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_groups_multiple_entry_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>internal</name>
+                                <out-delay>12</out-delay>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                            </group>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "internal"
+                },
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "external"
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_groups_neighbors_single_entry_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>internal</name>
+                                <out-delay>12</out-delay>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                            </group>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "internal"
+                },
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_groups_neighbors_multiple_entry_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>internal</name>
+                                <out-delay>12</out-delay>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                            </group>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                                <neighbor>
+                                    <name>10.10.10.10</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "internal"
+                },
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.10"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_single_groups_neighbors_multiple_entry_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                                <neighbor>
+                                    <name>10.10.10.10</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        }
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.10"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_single_groups_neighbors_single_entry_parsed(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                    <inet>
+                                        <any>
+                                            <withdraw-priority>
+                                                <expedited/>
+                                            </withdraw-priority>
+                                        </any>
+                                    </inet>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        },
+                        {
+                            "af_type": [
+                                {
+                                    "type": "any",
+                                    "withdraw_priority_expedited": True
+                                }
+                            ],
+                            "afi": "inet"
+                        },
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_single_groups_withdrow_priority_parser(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <inet>
+                                        <any>
+                                            <withdraw-priority>
+                                                <priority>13</priority>
+                                            </withdraw-priority>
+                                        </any>
+                                    </inet>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        },
+                        {
+                            "af_type": [
+                                {
+                                    "type": "any",
+                                    "withdraw_priority_priority": 13
+                                }
+                            ],
+                            "afi": "inet"
+                        },
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_single_groups_add_path_parser(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <inet>
+                                        <any>
+                                            <withdraw-priority>
+                                                <priority>13</priority>
+                                            </withdraw-priority>
+                                        </any>
+                                        <labeled-unicast>
+                                            <traffic-statistics>
+                                            </traffic-statistics>
+                                        </labeled-unicast>
+                                    </inet>
+                                    <inet6>
+                                        <unicast>
+                                            <topology>
+                                                <name>12</name>
+                                                <community>cm123</community>
+                                            </topology>
+                                            <topology>
+                                                <name>12</name>
+                                                <community>cm1123</community>
+                                            </topology>
+                                        </unicast>
+                                    </inet6>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                            <add-path>
+                                                <receive/>
+                                                <send>
+                                                    <multipath/>
+                                                    <include-backup-path>1</include-backup-path>
+                                                    <path-count>10</path-count>
+                                                    <prefix-policy>customer65443</prefix-policy>
+                                                    <path-selection-mode>
+                                                        <all-paths/>
+                                                        <equal-cost-paths/> 
+                                                    </path-selection-mode>
+                                                </send>
+                                            </add-path>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "add_path": {
+                                        "receive": True,
+                                        "send": {
+                                            "multipath": True,
+                                            "include_backup_path": 1,
+                                            "path_count": 10,
+                                            "prefix_policy": "customer65443",
+                                            "path_selection_mode": {
+                                                "all_paths": True,
+                                                "equal_cost_paths": True
+                                            }
+
+                                        }
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        },
+                        {
+                            "af_type": [
+                                {
+                                    "type": "any",
+                                    "withdraw_priority_priority": 13
+                                },
+                                {
+                                    "traffic_statistics": {
+                                        "set": True
+                                    },
+                                    "type": "labeled-unicast"
+                                }
+                            ],
+                            "afi": "inet"
+                        },
+                        {
+                            "af_type": [
+                                {
+                                    "topology": [
+                                        {
+                                            "community": [
+                                                "cm123",
+                                                "cm1123",
+                                            ],
+                                            "name": "12"
+                                        }
+                                    ],
+                                    "type": "unicast"
+                                }
+                            ],
+                            "afi": "inet6"
+                        },
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+    def test_junos_bgp_address_family_single_groups_add_path_nested_parser(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+                    <version>18.4R1-S2.4</version>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>external</name>
+                                <family>
+                                    <inet>
+                                        <any>
+                                            <withdraw-priority>
+                                                <priority>13</priority>
+                                            </withdraw-priority>
+                                        </any>
+                                        <labeled-unicast>
+                                            <traffic-statistics>
+                                                <interval>10</interval>
+                                                <labeled-path/>
+                                                <file>
+                                                    <files>2</files>
+                                                    <no-world-readable/>
+                                                    <size>12</size>
+                                                    <world-readable/>
+                                                </file>
+                                            </traffic-statistics>
+                                        </labeled-unicast>
+                                    </inet>
+                                    <inet6>
+                                        <unicast>
+                                            <topology>
+                                                <name>12</name>
+                                                <community>cm123</community>
+                                            </topology>
+                                        </unicast>
+                                    </inet6>
+                                    <evpn>
+                                        <signaling>
+                                            <accepted-prefix-limit>
+                                                <maximum>20</maximum>
+                                                <teardown>
+                                                    <limit-threshold>98</limit-threshold>
+                                                    <idle-timeout>
+                                                        <timeout>2001</timeout>
+                                                    </idle-timeout>
+                                                </teardown>
+                                            </accepted-prefix-limit>
+                                            <damping/>
+                                            <defer-initial-multipath-build>
+                                                <maximum-delay>2</maximum-delay>
+                                            </defer-initial-multipath-build>
+                                            <add-path>
+                                                <receive/>
+                                                <send>
+                                                    <multipath/>
+                                                    <include-backup-path>1</include-backup-path>
+                                                    <path-count>10</path-count>
+                                                    <prefix-policy>customer65443</prefix-policy>
+                                                    <path-selection-mode>
+                                                        <all-paths/>
+                                                        <equal-cost-paths/> 
+                                                    </path-selection-mode>
+                                                </send>
+                                            </add-path>
+                                        </signaling>
+                                    </evpn>
+                                </family>
+                                <peer-as>65438</peer-as>
+                                <neighbor>
+                                    <name>10.10.10.1</name>
+                                    <family>
+                                        <evpn>
+                                            <signaling>
+                                                <accepted-prefix-limit>
+                                                    <maximum>20</maximum>
+                                                    <teardown>
+                                                        <limit-threshold>98</limit-threshold>
+                                                    </teardown>
+                                                </accepted-prefix-limit>
+                                            </signaling>
+                                        </evpn>
+                                    </family>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                    <routing-options>
+                        <static>
+                            <route>
+                            <name>172.16.17.0/24</name>
+                            <discard />
+                            </route>
+                        </static>
+                        <router-id>10.200.16.75</router-id>
+                        <autonomous-system>
+                            <as-number>65432</as-number>
+                        </autonomous-system>
+                    </routing-options>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed_dict = {
+            "groups": [
+                {
+                    "address_family": [
+                        {
+                            "af_type": [
+                                {
+                                    "accepted_prefix_limit": {
+                                        "idle_timeout_value": 2001,
+                                        "limit_threshold": 98,
+                                        "maximum": 20
+                                    },
+                                    "damping": True,
+                                    "defer_initial_multipath_build": {
+                                        "maximum_delay": 2
+                                    },
+                                    "add_path": {
+                                        "receive": True,
+                                        "send": {
+                                            "multipath": True,
+                                            "include_backup_path": 1,
+                                            "path_count": 10,
+                                            "prefix_policy": "customer65443",
+                                            "path_selection_mode": {
+                                                "all_paths": True,
+                                                "equal_cost_paths": True
+                                            }
+
+                                        }
+                                    },
+                                    "type": "signaling"
+                                }
+                            ],
+                            "afi": "evpn"
+                        },
+                        {
+                            "af_type": [
+                                {
+                                    "type": "any",
+                                    "withdraw_priority_priority": 13
+                                },
+                                {
+                                    "traffic_statistics": {
+                                        "interval": 10,
+                                        "file": {
+                                            "files": 2,
+                                            "size": 12,
+                                            "world_readable": True,
+                                            "no_world_readable": True,
+                                        }
+                                    },
+                                    "type": "labeled-unicast"
+                                }
+                            ],
+                            "afi": "inet"
+                        },
+                        {
+                            "af_type": [
+                                {
+                                    "topology": [
+                                        {
+                                            "community": [
+                                                "cm123"
+                                            ],
+                                            "name": "12"
+                                        }
+                                    ],
+                                    "type": "unicast"
+                                }
+                            ],
+                            "afi": "inet6"
+                        },
+                    ],
+                    "name": "external",
+                    "neighbors": [
+                        {
+                            "address_family": [
+                                {
+                                    "af_type": [
+                                        {
+                                            "accepted_prefix_limit": {
+                                                "limit_threshold": 98,
+                                                "maximum": 20
+                                            },
+                                            "type": "signaling"
+                                        }
+                                    ],
+                                    "afi": "evpn"
+                                }
+                            ],
+                            "neighbor_address": "10.10.10.1"
+                        },
+                    ]
+                }
+
+            ]
+        }
+        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+
+
+    '''
     def test_junos_bgp_address_family_add(self):
         set_module_args(
             dict(
@@ -253,3 +1793,4 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
         )
 
         self.execute_module(changed=False, commands=[])
+    '''

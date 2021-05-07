@@ -196,11 +196,17 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                 "set": {"type": "bool"},
                                 "strip_nexthop": {"type": "bool"},
                                 "topology": {
-                                    "options": {
-                                        "community": {"type": "bool"},
-                                        "name": {"type": "str"},
+                                    'elements': 'dict',
+                                    'options': {
+                                        'community': {
+                                            'elements': 'str',
+                                            'type': 'list'
+                                        },
+                                        'name': {
+                                            'type': 'str'
+                                        }
                                     },
-                                    "type": "dict",
+                                    'type': 'list'
                                 },
                                 "traffic_statistics": {
                                     "options": {
@@ -450,11 +456,17 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                         "set": {"type": "bool"},
                                         "strip_nexthop": {"type": "bool"},
                                         "topology": {
-                                            "options": {
-                                                "community": {"type": "bool"},
-                                                "name": {"type": "str"},
+                                            'elements': 'dict',
+                                            'options': {
+                                                'community': {
+                                                    'elements': 'str',
+                                                    'type': 'list'
+                                                },
+                                                'name': {
+                                                    'type': 'str'
+                                                }
                                             },
-                                            "type": "dict",
+                                            'type': 'list'
                                         },
                                         "traffic_statistics": {
                                             "options": {
@@ -770,15 +782,17 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                                     "type": "bool"
                                                 },
                                                 "topology": {
-                                                    "options": {
-                                                        "community": {
-                                                            "type": "bool"
+                                                    'elements': 'dict',
+                                                    'options': {
+                                                        'community': {
+                                                            'elements': 'str',
+                                                            'type': 'list'
                                                         },
-                                                        "name": {
-                                                            "type": "str"
-                                                        },
+                                                        'name': {
+                                                            'type': 'str'
+                                                        }
                                                     },
-                                                    "type": "dict",
+                                                    'type': 'list'
                                                 },
                                                 "traffic_statistics": {
                                                     "options": {
