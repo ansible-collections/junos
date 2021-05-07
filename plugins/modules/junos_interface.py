@@ -25,7 +25,7 @@ deprecated:
 options:
   name:
     description:
-    - Name of the Interface.
+    - Specify Name of the Interface.
     type: str
   description:
     description:
