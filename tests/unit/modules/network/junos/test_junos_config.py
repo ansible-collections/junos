@@ -40,7 +40,6 @@ class TestJunosConfigModule(TestJunosModule):
 
     def setUp(self):
         super(TestJunosConfigModule, self).setUp()
-
         self.mock_get_config = patch(
             "ansible_collections.junipernetworks.junos.plugins.modules.junos_config.get_configuration"
         )
@@ -109,9 +108,29 @@ class TestJunosConfigModule(TestJunosModule):
         self.mock_netconf_rpc.stop()
 
     def load_fixtures(self, commands=None, format="text", changed=False):
-        self.get_config.return_value = load_fixture(
-            "get_configuration_rpc_reply.txt"
-        )
+        if "test_junos_config_backup " in str(
+            self
+        ) or "test_junos_config_lines" in str(self):
+            self.get_config.return_value = load_fixture(
+                "get_configuration_rpc_reply.txt"
+            )
+        elif format == "xml":
+            self.get_config.return_value = load_fixture(
+                "get_configuration_rpc_reply_xml.txt"
+            )
+        elif format == "json":
+            self.get_config.return_value = load_fixture(
+                "get_configuration_rpc_reply_json.txt"
+            )
+        elif format == "set":
+            self.get_config.return_value = load_fixture(
+                "get_configuration_rpc_reply_set.txt"
+            )
+        elif format == "text":
+            self.get_config.return_value = load_fixture(
+                "get_configuration_rpc_reply_text.txt"
+            )
+
         if changed:
             self.load_config.return_value = load_fixture(
                 "get_configuration_rpc_reply_diff.txt"
@@ -136,6 +155,38 @@ class TestJunosConfigModule(TestJunosModule):
         set_module_args(dict(backup=True))
         result = self.execute_module()
         self.assertIn("__backup__", result)
+
+    def test_junos_config_backup_backupformat_json(self):
+        set_module_args(
+            dict(backup=True, backup_options=dict(backup_format="json"))
+        )
+        result = self.execute_module(format="json")
+        self.assertIn("__backup__", result)
+        self.assertIn("\"configuration\" :", result["__backup__"])
+
+    def test_junos_config_backup_backupformat_xml(self):
+        set_module_args(
+            dict(backup=True, backup_options=dict(backup_format="xml"))
+        )
+        result = self.execute_module(format="xml")
+        self.assertIn("__backup__", result)
+        self.assertIn("</configuration>", result["__backup__"])
+
+    def test_junos_config_backup_backupformat_set(self):
+        set_module_args(
+            dict(backup=True, backup_options=dict(backup_format="set"))
+        )
+        result = self.execute_module(format="set")
+        self.assertIn("__backup__", result)
+        self.assertIn("set system host-name", result["__backup__"])
+
+    def test_junos_config_backup_backupformat_text(self):
+        set_module_args(
+            dict(backup=True, backup_options=dict(backup_format="text"))
+        )
+        result = self.execute_module(format="text")
+        self.assertIn("__backup__", result)
+        self.assertIn("system {", result["__backup__"])
 
     def test_junos_config_lines(self):
         set_module_args(
