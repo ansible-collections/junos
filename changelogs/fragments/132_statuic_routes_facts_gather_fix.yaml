@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - facts gather fix when routing instance type forward is configured (https://github.com/ansible-collections/cisco.iosxr/issues/132.
