@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import q
 from copy import deepcopy
 from ansible.module_utils._text import to_bytes
 from ansible.module_utils.basic import missing_required_lib
@@ -57,7 +58,7 @@ class Bgp_address_familyFacts(object):
 
         self.generated_spec = utils.generate_dict(facts_argument_spec)
 
-    def get_connection(self, connection, config_filter):
+    def get_device_data(self, connection, config_filter):
         """
         :param connection:
         :param config_filter:
@@ -88,7 +89,7 @@ class Bgp_address_familyFacts(object):
                             </routing-options>
                         </configuration>
                         """
-            data = self.get_connection(connection, config_filter)
+            data = self.get_device_data(connection, config_filter)
 
         if isinstance(data, string_types):
             data = etree.fromstring(
@@ -116,6 +117,7 @@ class Bgp_address_familyFacts(object):
             params = utils.validate_config(
                 self.argument_spec, {"config": objs}
             )
+
             facts["bgp_address_family"] = utils.remove_empties(
                 params["config"]
             )
@@ -163,7 +165,7 @@ class Bgp_address_familyFacts(object):
                         neighbors = group.get("neighbor")
                         if isinstance(neighbors, list):
                             for neighbor in neighbors:
-                                nh_af_dict["name"] = neighbor.get("name")
+                                # nh_af_dict["name"] = neighbor.get("neighbor_address")
                                 naf_facts = self.parse_af_facts(neighbor)
                                 if naf_facts is not None:
                                     nh_af_dict["address_family"] = naf_facts
@@ -199,7 +201,7 @@ class Bgp_address_familyFacts(object):
                     neighbors = groups.get("neighbor")
                     if isinstance(neighbors, list):
                         for neighbor in neighbors:
-                            nh_af_dict["name"] = neighbor.get("name")
+                            # nh_af_dict["name"] = neighbor.get("name")
                             naf_facts = self.parse_af_facts(neighbor)
                             if naf_facts is not None:
                                 nh_af_dict["address_family"] = naf_facts
@@ -453,17 +455,17 @@ class Bgp_address_familyFacts(object):
 
             # Parse topology
             if "topology" in nlri.keys():
-                t_dict = self.parse_topology(nlri)
+                t_list = self.parse_topology(nlri)
                 # populate topology
-                if t_dict:
-                    nlri_dict["topology"] = t_dict
+                if t_list:
+                    nlri_dict["topology"] = t_list
 
             # Parse traffic-statistics
-            if "traffic_statistics" in nlri.keys():
+            if "traffic-statistics" in nlri.keys():
                 ts_dict = self.parse_traffic_statistics(nlri)
                 # populate topology
                 if ts_dict:
-                    nlri_dict["traffic-statistics"] = ts_dict
+                    nlri_dict["traffic_statistics"] = ts_dict
 
             # Parse withdraw-priority
             if "withdraw-priority" in nlri.keys():
@@ -678,9 +680,37 @@ class Bgp_address_familyFacts(object):
         :return:
         """
         top_dict = {}
-        top = cfg.get("topology")
-        top_dict["community"] = top.get("community")
-        return top_dict
+        topology_list = []
+        topologies = cfg.get("topology")
+        if isinstance(topologies, list):
+            for topology in topologies:
+                top_dict["name"] = topology["name"]
+                communities = topology.get("community")
+                community_lst = []
+                if isinstance(communities, list):
+                    for community in communities:
+                        community_lst.append(community)
+                else:
+                    community_lst.append(communities)
+                if community_lst is not None:
+                    top_dict["community"] = community_lst
+                if top_dict is not None:
+                    topology_list.append(top_dict)
+                    top_dict = {}
+        else:
+            top_dict["name"] = topologies["name"]
+            communities = topologies.get("community")
+            community_lst = []
+            if isinstance(communities, list):
+                for community in communities:
+                    community_lst.append(community)
+            else:
+                community_lst.append(communities)
+            if community_lst is not None:
+                top_dict["community"] = community_lst
+            if top_dict is not None:
+                topology_list.append(top_dict)
+        return topology_list
 
     def parse_traffic_statistics(self, cfg):
         """
@@ -690,7 +720,8 @@ class Bgp_address_familyFacts(object):
         :return:
         """
         ts_dict = {}
-        ts = cfg.get("itraffic-statistics")
+        q(cfg)
+        ts = cfg.get("traffic-statistics")
         if not ts:
             ts_dict["set"] = True
         else:
